@@ -1,4 +1,4 @@
-/** 
+ /** 
  * Write a function 'filter()' that implements a multi-
  *   dimensional Kalman Filter for the example given
  */
@@ -6,7 +6,7 @@
 #include <iostream>
 #include <vector>
 // #include <Eigen3/Dense>
-# include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Core>
 using std::cout;
 using std::endl;
 using std::vector;
