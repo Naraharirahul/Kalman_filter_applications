@@ -5,8 +5,8 @@
 
 #include <iostream>
 #include <vector>
-#include "Dense"
-
+// #include <Eigen3/Dense>
+# include <eigen3/Eigen/Core>
 using std::cout;
 using std::endl;
 using std::vector;
@@ -74,16 +74,23 @@ int main() {
 void filter(VectorXd &x, MatrixXd &P) {
 
   for (unsigned int n = 0; n < measurements.size(); ++n) {
-
-    VectorXd z = measurements[n];
     // TODO: YOUR CODE HERE
 		
     // KF Measurement update step
-		 
+    VectorXd z = measurements[n];
+		VectorXd y = z - H * x ;
+    MatrixXd Ht = H.transpose();
+    MatrixXd S = H * P * Ht + R ;
+    MatrixXd Si = S.inverse();
+    MatrixXd K = P * Ht * Si ;
     // new state
 		
     // KF Prediction step
 		
+    x = x + (K * y) ;
+    P = ( I - K * H) * P ;
+
     cout << "x=" << endl <<  x << endl;
     cout << "P=" << endl <<  P << endl;
   }
+}
