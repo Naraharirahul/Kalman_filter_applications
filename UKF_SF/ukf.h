@@ -2,8 +2,8 @@
 #define UKF_H
 
 // #include "Dense"
+#include <eigen3/Eigen/Core>
 
-#include <eigen/Eigen/Core>
 class UKF {
  public:
   /**
