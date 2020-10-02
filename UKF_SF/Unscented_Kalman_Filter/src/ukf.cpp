@@ -98,9 +98,21 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
           0, std_laspy_, 0, 0, 0,
           0, 0, 1, 0, 0,
           0, 0, 0, 1, 0,
-          0, 0, 0, 0, 1; 
+          0, 0, 0, 0, 1;  
   }
-    
+  time_us_ = meas_package.timestamp_;
+
+  double time_diff = (meas_package.timestamp_ - time_us_) / 1000000.0;
+  time_us_ = meas_package.timestamp_;
+  Prediction(time_diff);
+
+  if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
+    UpdateRadar(meas_package);
+  }
+  if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
+    UpdateLidar(meas_package);
+  } 
+  
   }
   /**
    * TODO: Complete this function! Make sure you switch between lidar and radar
