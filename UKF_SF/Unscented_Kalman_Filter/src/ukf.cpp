@@ -1,9 +1,10 @@
+#include <iostream>
 #include "ukf.h"
 #include "Eigen/Dense"
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
-
+using namespace std;
 /**
  * Initializes Unscented Kalman filter
  */
@@ -54,16 +55,58 @@ UKF::UKF() {
    * TODO: Complete the initialization. See ukf.h for other member properties.
    * Hint: one or more values initialized above might be wildly off...
    */
+
+  lambda_ = 3 - n_x_;
+  n_aug_ = n_x_ + 2;
+  double n_sig_ = 2 * n_aug_ + 1; 
+  // std::cout << MeasurementPackage::raw_measurements_ << std::endl; 
+
+
 }
 
 UKF::~UKF() {}
 
 void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
+  if(meas_package.sensor_type_ ==  MeasurementPackage::RADAR){
+    
+    // std::cou << meas_package.raw_measurements_ << std::endl; 
+   double rho = meas_package.raw_measurements_[0]; 
+   double phi = meas_package.raw_measurements_[1];
+   double rho_dot = meas_package.raw_measurements_[2];
+
+   double x = rho * cos(phi);
+   double y = rho * sin(phi);
+   double vx = rho_dot * cos(phi);
+   double vy = rho_dot * sin(phi);
+   double v = sqrt(vx*vx + vy*vy);
+
+  x_ << x, y, v, rho, rho_dot ;
+
+  P_ << std_radr_* std_radr_, 0, 0, 0, 0,
+            0, std_radr_ * std_radr_, 0, 0, 0,
+            0, 0, std_radrd_ * std_radrd_, 0, 0,
+            0, 0, 0, std_radphi_ * std_radphi_, 0,
+            0, 0, 0, 0, std_radphi_ * std_radphi_;  
+  }
+  else if (meas_package.sensor_type_ ==  MeasurementPackage::LASER){
+    double x = meas_package.raw_measurements_[0];
+    double y = meas_package.raw_measurements_[1];
+
+    x_ << x, y, 0, 0, 0;
+
+    P_ << std_laspx_, 0, 0, 0, 0,
+          0, std_laspy_, 0, 0, 0,
+          0, 0, 1, 0, 0,
+          0, 0, 0, 1, 0,
+          0, 0, 0, 0, 1; 
+  }
+    
+  }
   /**
    * TODO: Complete this function! Make sure you switch between lidar and radar
    * measurements.
    */
-}
+
 
 void UKF::Prediction(double delta_t) {
   /**
