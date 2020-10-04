@@ -74,18 +74,18 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       double y = rho * sin(phi);
       double vx = rho_dot * cos(phi);
       double vy = rho_dot * sin(phi);
-      double v = sqrt(vx * vx + vy * vy);
-
       ekf_.x_ << x,y,vx, vy;
+
+      
       // ekf_.P_ << 
 
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
       // TODO: Initialize state.
-      double x = meas_package.raw_measurements_[0];
-      double y = meas_package.raw_measurements_[1];
+      double x = measurement_pack.raw_measurements_[0];
+      double y = measurement_pack.raw_measurements_[1];
 
-      ekf.x_ << x, y, 0, 0, 0;
+      ekf_.x_ << x, y, 0, 0, 0;
       
     }
     previous_timestamp_ = measurement_pack.timestamp_;
@@ -94,8 +94,27 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     return;
   }
 
-  double time_diff = (meas_package.timestamp_ - previous_timestamp_) / 1000000.0;
+  double time_diff = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
+  previous_timestamp_ = measurement_pack.timestamp_;
+  
+  ekf_.F_ = MatrixXd(4,4);
+  ekf_.F_ << 1, 0, time_diff, 0,
+             0, 1, 0, time_diff,
+             0, 0, 1, 0,
+             0, 0, 0, 1;
 
+  double dt_1 = time_diff*time_diff;
+  double dt_2 = dt_1 * time_diff;
+  double dt_3 = dt_2 * dt_1;
+
+  float noise_ax = 9.0;
+  float noise_ay = 9.0;
+
+  ekf_.Q_ = MatrixXd(4,4);
+  ekf_.Q_ << dt_3*noise_ax/4, 0, dt_2*noise_ax/2, 0, 
+             0, dt_3*noise_ay/4, 0, dt_2*noise_ay/2,
+             dt_2*noise_ax/2, 0, dt_1*noise_ax, 0,
+             0, dt_2*noise_ay/2, 0, dt_1*noise_ay;
   /**
    * Prediction
    */
@@ -122,8 +141,15 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
     // TODO: Radar updates
 
+    ekf_.H_ = tools.CalculateJacobian(ekf_.x_);
+    ekf_.R_ = R_radar_;
+    ekf_.UpdateEKF(measurement_pack.raw_measurements_);
+
   } else {
     // TODO: Laser updates
+    ekf_.R_ = R_laser_;
+    ekf_.H_ = H_laser_;
+    ekf_.Update(measurement_pack.raw_measurements_);
 
   }
 
