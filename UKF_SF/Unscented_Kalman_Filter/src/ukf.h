@@ -1,7 +1,8 @@
 #ifndef UKF_H
 #define UKF_H
 
-#include "Eigen/Dense"
+// #include "Eigen/Dense"
+#include <eigen3/Eigen/Core>
 #include "measurement_package.h"
 
 class UKF {
